@@ -1,0 +1,4 @@
+modèle,MAE,RMSE,WAPE,bias,WAPE IC 95 %
+veille (lag_24h),23.114,44.904,0.273,-0.003,[0.252 ; 0.295]
+semaine précédente (lag_168h),18.404,34.422,0.218,-0.003,[0.200 ; 0.237]
+"moyenne 4 semaines, même créneau",17.011,31.392,0.201,-0.005,[0.185 ; 0.221]
