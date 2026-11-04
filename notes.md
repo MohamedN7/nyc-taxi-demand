@@ -45,6 +45,39 @@
   - le modèle devra gérer cette tendance : découpage dans le temps, test sur la fin de 2025
 - Changement d'heure : les heures des taxis et de la météo sont en heure locale ; une heure manque ou est doublée chaque année, à traiter lors de la jointure (étape 3)
 
-## Prochaine étape
+## Étape 2 : nettoyage et agrégation avec Spark
 
-Étape 2 : nettoyage et agrégation avec Spark (harmonisation des schémas, filtres, table zone x heure complète avec les zéros, rapport de qualité)
+**Règles de nettoyage** (sur 128 202 548 trajets)
+- durée <= 0 ou > 5 h : 646 466 retirés (0,50 %)
+- zone de départ 264 (Unknown) ou 265 (Outside of NYC) : 636 461 retirés (0,50 %)
+- distance < 0 ou > 100 miles : 5 787 retirés
+- date hors du mois du fichier : 1 364 retirés
+- total retiré : 1,00 % ; trajets gardés : 126 918 348
+- distance nulle : 2 827 471 trajets gardés (2,2 %), car on prévoit des prises en charge
+
+**Table zone x heure** : `data/processed/zone_hour/` (Parquet, partitionné par année et mois)
+- 263 zones x 26 304 heures = 6 917 952 lignes
+- vérifications : nombre de lignes, somme des prises en charge = trajets gardés, aucun doublon, aucune valeur manquante
+- 51,9 % des heures à 0 trajet
+- concentration : 32 zones = 80 %, 43 = 90 %, 56 = 95 % des prises en charge
+- décision : modéliser les 56 premières zones, classées sur la période d'entraînement seulement (pas de fuite de données)
+- changements d'heure : 2 h n'existe pas au printemps (0 trajet), 1 h compte double en automne
+
+## Étape 3 : variables en SQL (DuckDB)
+
+**Règle** : une variable n'est autorisée que si elle est connue la veille à minuit
+(prévision des 24 heures du lendemain). Pas de décalage de moins de 24 h.
+
+**Variables** : calendrier (heure, jour de la semaine, mois, week-end, 45 jours fériés NY),
+décalages 24 h, 48 h, 168 h, moyennes de la même heure sur 7 et 28 jours,
+total et moyenne journalière de la veille et des 7 jours précédents,
+météo (température, précipitations, neige, vent)
+
+**Vérifications** : 6 917 952 lignes, 0 décalage de 24 h incorrect
+- valeurs manquantes = 263 x nombre d'heures du début de période : on retirera la 1re semaine de 2023
+- météo : une valeur par heure de l'horloge, aucune manquante ni en double
+
+**Corrélations globales** : lag_168h 0,956 ; moyenne 7 j 0,938 ; lag_24h 0,929 ; température 0,032
+- gonflées par la taille des zones (calculées sur toutes les zones mélangées)
+- météo : effet probablement non linéaire, à mesurer avec et sans à l'étape 5
+- hypothèse optimiste : on utilise la météo observée comme une prévision parfaite
