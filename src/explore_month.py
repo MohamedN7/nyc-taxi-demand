@@ -8,7 +8,7 @@ spark = (SparkSession.builder
          .getOrCreate())
 
 # --- Lecture (transformation : rien n'est encore calculé) ---
-trips = spark.read.parquet("data/raw/yellow_tripdata_2024-01.parquet")
+trips = spark.read.parquet("data/raw/yellow/yellow_tripdata_2024-01.parquet")
 trips.printSchema()
 
 # --- Action : Spark lit vraiment le fichier ---
