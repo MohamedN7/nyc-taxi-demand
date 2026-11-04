@@ -1,0 +1,9 @@
+duckdb==2.0.0
+numpy==2.5.4
+pandas==2.3.3
+py4j==0.10.9.9
+pyarrow==26.0.1
+pyspark==4.3.0
+python-dateutil==4.0.0
+pytz==2026.6
+tzdata==2026.6
