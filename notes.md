@@ -81,3 +81,41 @@ météo (température, précipitations, neige, vent)
 - gonflées par la taille des zones (calculées sur toutes les zones mélangées)
 - météo : effet probablement non linéaire, à mesurer avec et sans à l'étape 5
 - hypothèse optimiste : on utilise la météo observée comme une prévision parfaite
+
+## Étape 4 : protocole d'évaluation
+
+**Découpage** : entraînement 08/01/2023 au 30/06/2025 (1 216 320 lignes) ; validation 07 à 09/2025
+(123 648) ; test 10 à 12/2025 (123 648), verrouillé jusqu'à la fin ; 1re semaine exclue (9 408)
+
+**Zones** : 56 zones classées sur l'entraînement seulement (`config/zones.json`), 96,0 % des prises en charge
+
+**Mesure principale** : WAPE (pas la MAPE, impossible quand la demande vaut 0) ;
+intervalles de confiance par bootstrap sur les jours (pas les heures, corrélées entre elles)
+
+**Références sur la validation**
+- veille : WAPE 27,3 % [25,2 ; 29,5]
+- semaine précédente : 21,8 % [20,0 ; 23,7]
+- moyenne 4 semaines même créneau : 20,1 % [18,5 ; 22,1] ← barre à battre
+- écarts significatifs ; biais quasi nul (-0,5 %), cohérent avec la hausse de 2025
+
+**Zones difficiles** : East Elmhurst (33 %, voisine de LaGuardia), puis des zones à plus faible volume (28-29 %)
+
+**Critère de succès** : l'IC 95 % de la différence de WAPE avec la référence doit exclure 0
+
+## Étape 5 : LightGBM et MLflow
+
+**4 essais** (un seul choix change à la fois) : perte L2, L1, Poisson ; Poisson sans météo
+**1er essai** (learning_rate 0,05, 5 000 arbres max) : arrêt anticipé jamais déclenché
+**2e essai** (learning_rate 0,1, 20 000 arbres max) : arrêt entre 1 408 et 4 626 arbres, scores inchangés
+
+**Résultats (validation)**
+- référence moyenne 4 semaines : WAPE 20,1 %
+- LightGBM : 14,1 % (L1, Poisson, Poisson sans météo), 14,6 % (L2)
+- écart avec la référence : environ -6 points, IC 95 % [-7,6 ; -4,7], 56 zones sur 56 améliorées
+- météo : apport nul, IC [-0,2 ; +0,2] point (et pourtant météo observée, donc optimiste)
+
+**Modèle retenu** : Poisson sans météo, WAPE 14,1 % [13,4 ; 14,9] (le plus simple, sans prévision météo)
+
+**Importance (gain)** : demande passée au même créneau dominante (68 % puis 90 % selon l'essai)
+- instable selon les réglages : à confirmer avec SHAP ou permutation
+**Bruit incompressible** (Poisson, approximatif) : environ 9 % de WAPE

@@ -1,0 +1,6 @@
+run,MAE,RMSE,WAPE,bias,écart avec la référence (IC 95 %)
+référence : moyenne 4 semaines,17.011,31.392,0.201,-0.005,-
+l2_toutes_variables,12.312,21.935,0.146,0.007,[-0.071 ; -0.043]
+l1_toutes_variables,11.935,21.859,0.141,-0.005,[-0.075 ; -0.047]
+poisson_toutes_variables,11.944,21.533,0.141,0.002,[-0.076 ; -0.047]
+poisson_sans_meteo,11.922,21.611,0.141,-0.005,[-0.076 ; -0.047]
