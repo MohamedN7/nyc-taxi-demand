@@ -119,3 +119,23 @@ intervalles de confiance par bootstrap sur les jours (pas les heures, corrélée
 **Importance (gain)** : demande passée au même créneau dominante (68 % puis 90 % selon l'essai)
 - instable selon les réglages : à confirmer avec SHAP ou permutation
 **Bruit incompressible** (Poisson, approximatif) : environ 9 % de WAPE
+
+## Étape 6 : LSTM avec PyTorch
+
+**Modèle** : un exemple par (zone, jour) ; entrée = 168 heures d'historique de la zone,
+calendrier du jour, référence des 24 heures, embedding de zone ; sortie = 24 heures
+- prédit une correction de la référence ; normalisation par zone (moyenne de l'entraînement)
+- perte : erreur absolue sur la demande réelle (alignée sur la WAPE) ; 68 184 paramètres
+- 50 680 exemples d'entraînement, 5 152 de validation ; environ 42 s par époque sur CPU
+
+**Entraînement** : 40 époques, meilleure à la 38e, arrêt anticipé jamais déclenché
+(courbe presque plate : -0,2 point entre les époques 21 et 38)
+
+**Résultats (validation)**
+- LSTM : WAPE 15,1 % [14,4 ; 15,9]
+- contre la référence : [-6,6 ; -3,7] points, meilleur
+- contre LightGBM : [+0,7 ; +1,2] point, LightGBM réellement meilleur
+- moyenne LightGBM + LSTM : 14,1 %, aucun gain [-0,1 ; +0,1]
+
+**Décision** : LightGBM reste le modèle principal (plus précis, environ 2 min contre 28, plus simple)
+**Pistes non testées** : 14 jours d'historique, plus d'époques, baisse progressive du learning rate
