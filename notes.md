@@ -139,3 +139,37 @@ calendrier du jour, référence des 24 heures, embedding de zone ; sortie = 24 h
 
 **Décision** : LightGBM reste le modèle principal (plus précis, environ 2 min contre 28, plus simple)
 **Pistes non testées** : 14 jours d'historique, plus d'époques, baisse progressive du learning rate
+
+## Étape 7 : détection d'anomalies
+
+**Méthode** : résidu (réel - prévision LightGBM) / racine(prévision + 1), puis score robuste
+par zone (médiane et MAD) ; seuil |score| > 4 ; agrégation à l'échelle de la ville et
+regroupement des heures consécutives en épisodes
+
+**Zone x heure (validation)** : 1 267 heures anormales au seuil 4 (1,02 %), dont 1 063 au-dessus
+de la prévision ; queues épaisses (une loi normale donnerait environ 0,006 %)
+
+**Ville** : 53 heures anormales, 23 épisodes
+
+**Événements listés avant l'analyse**
+- inondations du 14 juillet : détecté, épisode n° 1 (17 h-21 h, +17 334 trajets, 42 zones)
+- 4 juillet : détecté, demande plus faible que prévu (score -4,4)
+- Labor Day : non détecté (le modèle le prévoit déjà grâce à la variable jour férié)
+
+**Explications après coup (hypothèses à vérifier)**
+- aéroports la nuit (LaGuardia 1 h-2 h, JFK 2 h) : vols retardés ?
+- 2 et 3 juillet en soirée, demande plus faible : départs avant le week-end du 4 juillet
+  -> piste : variable « veille de jour férié »
+- 13 août et 20 août en fin de journée : à vérifier avec la pluie
+- le fichier d'événements a été rempli après le premier lancement, mais avec les 3 événements
+  proposés avant l'analyse ; aucun événement ajouté après coup
+
+  **Lien avec la pluie (après coup)** : 6 des 8 épisodes au-dessus de la prévision ont eu
+une heure de pluie > 0,8 mm/h (95e centile d'été) ; les 2 creux (2 et 3 juillet) par temps sec
+- taux de base des fenêtres pluvieuses : [à compléter avec check_rain_baseline.py]
+- la météo n'aide pas en moyenne (étape 5) mais semble expliquer les heures extrêmes, rares
+- limite : prévisions de pluie heure par heure peu fiables la veille ; un seul point de mesure
+
+- taux de base des fenêtres pluvieuses : 7 % (3 h), 9 % (5 h), 12 % (8 h), contre 75 % pour les
+  épisodes au-dessus de la prévision ; probabilité d'au moins 6 sur 8 par hasard : environ 1 sur 15 000
+- à confirmer sur une autre période (le test, à la fin du projet)

@@ -1,0 +1,11 @@
+.venv/
+.git/
+__pycache__/
+mlruns/
+mlartifacts/
+mlflow.db
+models/
+reports/
+spark-warehouse/
+data/*
+!data/serving/
