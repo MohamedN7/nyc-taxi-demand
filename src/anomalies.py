@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")                     # pas de fenêtre : on enregistre les figures
 import matplotlib.pyplot as plt
 import numpy as np

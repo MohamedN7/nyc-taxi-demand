@@ -3,7 +3,8 @@ from functools import reduce
 from pathlib import Path
 
 import pandas as pd
-from pyspark.sql import SparkSession, functions as F
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
 
 RAW = Path("data/raw/yellow")
 ZONES_CSV = "data/raw/taxi_zone_lookup.csv"

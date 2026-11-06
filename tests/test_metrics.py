@@ -26,5 +26,5 @@ def test_bootstrap_previsions_identiques():
 
 
 def test_periodes_ordonnees_sans_chevauchement():
-    t, v, s = (pd.Timestamp(SPLITS[k][0]) for k in ("train", "val", "test"))
-    assert pd.Timestamp(SPLITS["train"][1]) < v < pd.Timestamp(SPLITS["val"][1]) < s
+    bornes = [pd.Timestamp(d) for k in ("train", "val", "test") for d in SPLITS[k]]
+    assert bornes == sorted(bornes) and len(set(bornes)) == len(bornes)

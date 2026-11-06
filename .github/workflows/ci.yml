@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-ci.txt
+      - name: Installer les dépendances
+        run: pip install -r requirements-ci.txt
+      - name: Vérifier le style
+        run: ruff check src app tests
+      - name: Créer les données de test
+        run: python tests/make_serving_fixture.py data/serving
+      - name: Lancer les tests
+        run: pytest
+
+  docker:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Installer les dépendances
+        run: pip install -r requirements-ci.txt
+      - name: Créer les données de test
+        run: python tests/make_serving_fixture.py data/serving
+      - name: Construire l'image
+        run: docker build -t taxi-api .
+      - name: Tester l'image
+        run: |
+          docker run -d --name api -p 8000:8000 taxi-api
+          for i in $(seq 1 30); do curl -sf http://localhost:8000/health && break; sleep 1; done
+          curl -sf "http://localhost:8000/forecast?zone_id=132&date=2025-07-15" > /dev/null
+          docker logs api

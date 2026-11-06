@@ -2,8 +2,15 @@
 import duckdb
 import pandas as pd
 
-from eval_lib import (FEATURES, SPLITS, bootstrap_wape, bootstrap_wape_diff,
-                      load_dataset, metrics, select_zones)
+from eval_lib import (
+    FEATURES,
+    SPLITS,
+    bootstrap_wape,
+    bootstrap_wape_diff,
+    load_dataset,
+    metrics,
+    select_zones,
+)
 
 zones = select_zones()
 start, end = SPLITS["train"]

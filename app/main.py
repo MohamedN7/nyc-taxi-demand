@@ -3,6 +3,7 @@ import json
 import os
 from datetime import date, datetime
 from pathlib import Path
+from typing import Annotated
 
 import lightgbm as lgb
 import pandas as pd
@@ -72,8 +73,8 @@ def list_zones():
 
 
 @app.get("/forecast", response_model=Forecast)
-def forecast(zone_id: int = Query(..., description="Numéro de zone TLC (voir /zones)"),
-             day: date = Query(..., alias="date", description="Jour à prévoir, AAAA-MM-JJ")):
+def forecast(zone_id: Annotated[int, Query(description="Numéro de zone TLC (voir /zones)")],
+             day: Annotated[date, Query(alias="date", description="Jour à prévoir, AAAA-MM-JJ")]):
     if zone_id not in ZONE_BY_ID:
         raise HTTPException(status_code=404, detail=f"Zone {zone_id} non servie : voir /zones")
     if not MIN_DATE <= day <= MAX_DATE:
@@ -92,7 +93,8 @@ def forecast(zone_id: int = Query(..., description="Numéro de zone TLC (voir /z
 
 
 @app.get("/anomalies/episodes", response_model=list[Episode])
-def anomaly_episodes(limit: int = Query(10, ge=1, le=50, description="Nombre d'épisodes, les plus forts d'abord")):
+def anomaly_episodes(limit: Annotated[int, Query(ge=1, le=50,
+                                                 description="Nombre d'épisodes, les plus forts d'abord")] = 10):
     return [Episode(start=r.debut, end=r.fin, hours=int(r.heures), score=round(float(r.z_max), 1),
                     excess_trips=round(float(r.ecart_trajets), 1), zones_flagged=int(r.zones_signalees))
             for r in EPISODES.head(limit).itertuples()]

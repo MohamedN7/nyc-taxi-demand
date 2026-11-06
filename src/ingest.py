@@ -28,8 +28,7 @@ def download(url, dest):
             return "absent"
         r.raise_for_status()
         with open(tmp, "wb") as f:
-            for chunk in r.iter_content(chunk_size=1 << 20):   # par blocs de 1 Mo
-                f.write(chunk)
+            f.writelines(r.iter_content(chunk_size=1 << 20))   # par blocs de 1 Mo
     tmp.rename(dest)
     return "téléchargé"
 
@@ -69,7 +68,7 @@ for year in YEARS:
         try:
             n_rows = pq.ParquetFile(dest).metadata.num_rows   # relit l'en-tête du fichier
             schema = pq.read_schema(dest)
-        except Exception as e:
+        except (OSError, ValueError) as e:
             print(f"{name} : fichier illisible ({e}), supprimé")
             dest.unlink()
             continue

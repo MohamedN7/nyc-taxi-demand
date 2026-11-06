@@ -1,10 +1,12 @@
+import json
+import os
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
-SERVING = Path("data/serving")
+SERVING = Path(os.environ.get("SERVING_DIR", "data/serving"))
 pytestmark = pytest.mark.skipif(not (SERVING / "model.txt").exists(),
                                 reason="fichiers de l'API absents : lancer src/export_serving.py")
 
@@ -22,8 +24,8 @@ def test_health(client):
 
 
 def test_zones(client):
-    assert len(client.get("/zones").json()) == 56
-
+    expected = len(json.loads((SERVING / "zones.json").read_text()))
+    assert len(client.get("/zones").json()) == expected
 
 def test_forecast_24_heures(client):
     r = client.get("/forecast", params={"zone_id": 132, "date": "2025-07-15"})
@@ -34,8 +36,8 @@ def test_forecast_24_heures(client):
 
 def test_forecast_identique_a_la_validation(client):
     saved_path = Path("data/processed/val_predictions_lgbm.parquet")
-    if not saved_path.exists():
-        pytest.skip("prévisions de validation absentes")
+    if SERVING != Path("data/serving") or not saved_path.exists():
+        pytest.skip("comparaison possible seulement avec les vraies données servies")
     saved = pd.read_parquet(saved_path)
     saved["pu_zone"] = saved["pu_zone"].astype(int)
     saved = saved[(saved["pu_zone"] == 132)
