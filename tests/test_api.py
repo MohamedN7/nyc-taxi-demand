@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import pytest
 
 SERVING = Path(os.environ.get("SERVING_DIR", "data/serving"))
@@ -35,17 +34,23 @@ def test_forecast_24_heures(client):
     assert len(hours) == 24 and all(h["forecast"] >= 0 for h in hours)
 
 
-def test_forecast_identique_a_la_validation(client):
-    saved_path = Path("data/processed/val_predictions_lgbm.parquet")
-    if SERVING != Path("data/serving") or not saved_path.exists():
+def test_forecast_identique_au_modele_final(client):
+    """L'API doit donner exactement les prévisions du modèle final, calculées hors de l'API."""
+    model_path = Path("models/lgbm_final.txt")
+    if SERVING != Path("data/serving") or not model_path.exists():
         pytest.skip("comparaison possible seulement avec les vraies données servies")
-    saved = pd.read_parquet(saved_path)
-    saved["pu_zone"] = saved["pu_zone"].astype(int)
-    saved = saved[(saved["pu_zone"] == 132)
-                  & (pd.to_datetime(saved["date"]) == "2025-07-15")].sort_values("hour")
-    api = client.get("/forecast", params={"zone_id": 132, "date": "2025-07-15"}).json()["hours"]
-    assert np.allclose([h["forecast"] for h in api], saved["pred"].to_numpy(), atol=0.01)
+    import lightgbm as lgb
 
+    from eval_lib import load_dataset
+
+    df = load_dataset()
+    df["pu_zone"] = df["pu_zone"].astype(int).astype("category")
+    day = df[(df["pu_zone"] == 132) & (df["date"] == "2025-11-15")].sort_values("hour")
+    booster = lgb.Booster(model_file=str(model_path))
+    expected = booster.predict(day[booster.feature_name()]).clip(min=0)
+
+    api = client.get("/forecast", params={"zone_id": 132, "date": "2025-11-15"}).json()["hours"]
+    assert np.allclose([h["forecast"] for h in api], expected, atol=0.01)
 
 def test_zone_inconnue(client):
     assert client.get("/forecast", params={"zone_id": 999, "date": "2025-07-15"}).status_code == 404

@@ -173,3 +173,22 @@ une heure de pluie > 0,8 mm/h (95e centile d'été) ; les 2 creux (2 et 3 juille
 - taux de base des fenêtres pluvieuses : 7 % (3 h), 9 % (5 h), 12 % (8 h), contre 75 % pour les
   épisodes au-dessus de la prévision ; probabilité d'au moins 6 sur 8 par hasard : environ 1 sur 15 000
 - à confirmer sur une autre période (le test, à la fin du projet)
+
+
+## Évaluation finale sur le test (octobre à décembre 2025, lancée une fois)
+
+**Prévision**
+- référence : 20,6 % [18,0 ; 23,4] (validation 20,1 %)
+- LSTM : 15,1 % ; LightGBM (30/06) : 14,2 % ; LightGBM final (30/09) : 14,2 % [13,4 ; 15,0]
+- final contre référence : [-8,8 ; -4,3] points ; LightGBM contre LSTM : [-1,2 ; -0,6] point
+- réentraînement jusqu'au 30/09 : gain négligeable [-0,1 ; 0]
+- par mois (final / référence) : octobre 13,0 / 14,3 ; novembre 14,5 / 20,0 ; décembre 15,1 / 27,6
+  -> l'avantage du modèle est maximal pendant les fêtes
+
+**Anomalies** : 50 heures anormales, 27 épisodes
+- événements listés à l'avance : changement d'heure détecté (artefact de données attendu) ;
+  Halloween, marathon, Thanksgiving, Noël, réveillon non détectés (jours fériés déjà prévus)
+- après coup : épisode n° 1 la nuit après Halloween (1 h-5 h, hors de la fenêtre fixée) ;
+  creux les veilles de Thanksgiving et de Noël, comme les 2-3 juillet -> variable « veille de férié »
+
+**Pluie** : 0 épisode pluvieux sur 5 (taux de base 7 %) : hypothèse non confirmée sur le test

@@ -9,7 +9,7 @@ import pandas as pd
 from eval_lib import load_dataset
 
 OUT = Path("data/serving")
-MODEL = "models/lgbm_poisson_sans_meteo.txt"
+MODEL = "models/lgbm_final.txt"
 OUT.mkdir(parents=True, exist_ok=True)
 
 shutil.copy(MODEL, OUT / "model.txt")
@@ -17,7 +17,7 @@ feature_names = lgb.Booster(model_file=MODEL).feature_name()
 
 # Variables des 56 zones, de l'entraînement et de la validation seulement (le test reste verrouillé)
 df = load_dataset()
-df = df[df["split"].isin(["train", "val"])]
+df = df[df["split"].isin(["train", "val", "test"])]
 cols = ["pu_zone", "hour", "date", "n_pickups"] + [c for c in feature_names if c != "pu_zone"]
 df[list(dict.fromkeys(cols))].to_parquet(OUT / "features.parquet", index=False)
 

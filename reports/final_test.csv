@@ -1,0 +1,5 @@
+modèle,MAE,RMSE,WAPE,bias,WAPE IC 95 %,WAPE validation
+référence : moyenne 4 semaines,19.383,36.649,0.206,0.026,[0.180 ; 0.234],0.201
+LSTM (jusqu'au 30/06),14.223,25.181,0.151,0.0,[0.142 ; 0.160],0.151
+LightGBM (jusqu'au 30/06),13.424,23.873,0.142,-0.002,[0.134 ; 0.151],0.141
+LightGBM final (jusqu'au 30/09),13.378,23.818,0.142,-0.004,[0.134 ; 0.150],
