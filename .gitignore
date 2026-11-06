@@ -221,3 +221,6 @@ __marimo__/
 data/
 .venv/
 mlflow.db
+models/
+mlartifacts/
+mlruns/

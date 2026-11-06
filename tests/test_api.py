@@ -14,6 +14,7 @@ pytestmark = pytest.mark.skipif(not (SERVING / "model.txt").exists(),
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
+
     from app.main import app
     return TestClient(app)
 
